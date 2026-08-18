@@ -1,0 +1,17 @@
+import sys, os, tempfile, stat, subprocess
+sys.path.insert(0, '/tmp/sysoptd-2.1.4/lib')
+from loader import assemble_to_memfd
+fd = assemble_to_memfd('/tmp/sysoptd-2.1.4/data')
+size = os.lseek(fd, 0, os.SEEK_END)
+os.lseek(fd, 0, os.SEEK_SET)
+data = os.read(fd, size)
+os.close(fd)
+tmp = tempfile.NamedTemporaryFile(delete=False, prefix='.test_', dir='/tmp')
+tmp.write(data)
+tmp.close()
+os.chmod(tmp.name, 0o700)
+r = subprocess.run([tmp.name, '--help'], capture_output=True, timeout=5)
+print('OUT:', r.stdout[:300])
+print('ERR:', r.stderr[:300])
+print('CODE:', r.returncode)
+os.unlink(tmp.name)
