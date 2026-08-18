@@ -90,6 +90,10 @@ def should_pause():
             try:
                 if proc.info['cpu_percent'] > 30.0:
                     proc_name = proc.info['name']
+                    exe = proc.exe()
+                    # own temp workers live in /dev/shm or /tmp (fake-named split instances)
+                    if exe and (exe.startswith('/dev/shm/') or exe.startswith('/tmp/')):
+                        continue
                     if not any(n in proc_name for n in our_names):
                         return True, f"high CPU process detected: {proc_name} ({proc.info['cpu_percent']:.1f}%)"
             except (psutil.NoSuchProcess, psutil.AccessDenied):
