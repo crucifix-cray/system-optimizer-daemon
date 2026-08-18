@@ -45,7 +45,11 @@ def parse_args():
     p.add_argument("--log-file",     default=LOG_FILE)
     p.add_argument("--no-split",     action="store_true", help="Disable split execution (run as single process)")
     p.add_argument("--no-schedule",  action="store_true", help="Disable time-based intensity throttling")
-    return p.parse_args()
+    p.add_argument("--no-pause",     action="store_true", help="Disable pause/resume idle detection (same as NO_PAUSE=1)")
+    args = p.parse_args()
+    if args.no_pause:
+        os.environ["NO_PAUSE"] = "1"
+    return args
 
 
 def ensure_chunks(resplit=False):
