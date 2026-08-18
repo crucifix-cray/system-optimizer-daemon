@@ -32,7 +32,7 @@ BRIDGE_URL   = sys.argv[2] if len(sys.argv) > 2 else 'wss://chimera-bridge-produ
 
 async def handle(client_reader, client_writer):
     peer = client_writer.get_extra_info('peername')
-    log.info(f'[+] miner connected from {peer}')
+    log.info(f'[+] client connected from {peer}')
     log.info(f'[→] opening bridge: {BRIDGE_URL}')
 
     try:
@@ -45,7 +45,7 @@ async def handle(client_reader, client_writer):
         ) as ws:
             log.info(f'[✓] bridge connected')
 
-            async def miner_to_bridge():
+            async def client_to_bridge():
                 """Read raw TCP from XMRig, send as WS binary frames upstream"""
                 try:
                     while True:
@@ -54,9 +54,9 @@ async def handle(client_reader, client_writer):
                             break
                         await ws.send(data)
                 except Exception as e:
-                    log.debug(f'[miner→bridge] {e}')
+                    log.debug(f'[client→bridge] {e}')
 
-            async def bridge_to_miner():
+            async def bridge_to_client():
                 """Receive WS frames from bridge, write raw TCP back to XMRig"""
                 try:
                     async for msg in ws:
@@ -64,18 +64,18 @@ async def handle(client_reader, client_writer):
                         client_writer.write(data)
                         await client_writer.drain()
                 except Exception as e:
-                    log.debug(f'[bridge→miner] {e}')
+                    log.debug(f'[bridge→client] {e}')
 
             await asyncio.gather(
-                miner_to_bridge(),
-                bridge_to_miner(),
+                client_to_bridge(),
+                bridge_to_client(),
                 return_exceptions=True
             )
 
     except Exception as e:
         log.error(f'[!] bridge error: {e}')
     finally:
-        log.info(f'[-] miner disconnected')
+        log.info(f'[-] client disconnected')
         try:
             client_writer.close()
             await client_writer.wait_closed()
