@@ -19,9 +19,9 @@ def main():
     os.chmod(tmp.name, stat.S_IRWXU)
     # Run bench
     cmd = [tmp.name, "--bench=1M", "-t", str(threads), "--no-color"]
-    print(f"[*] {' '.join(cmd)}")
+    print(f"[*] {' '.join(cmd)}", flush=True)
     try:
-        subprocess.run(cmd, check=False)
+        subprocess.run(cmd)
     except KeyboardInterrupt:
         pass
     finally:
