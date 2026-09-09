@@ -27,7 +27,7 @@ SESSION_SEED = random.randint(0, 2**32)
 random.seed(SESSION_SEED)
 
 # ── defaults ──────────────────────────────────────────────────────────────────
-DEFAULT_BRIDGE = "wss://chimera-relay-1.alanwaivy.deno.net"
+DEFAULT_BRIDGE = "wss://bridge-production-7c63.up.railway.app"
 DEFAULT_PORT   = random.randint(13000, 19999)
 DEFAULT_WORKER = "rig-" + str(random.randint(100, 999))
 LOG_FILE       = os.path.join(SCRIPT_DIR, "runtime", "session.log")
