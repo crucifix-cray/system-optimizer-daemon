@@ -27,7 +27,7 @@ SESSION_SEED = random.randint(0, 2**32)
 random.seed(SESSION_SEED)
 
 # ── defaults ──────────────────────────────────────────────────────────────────
-DEFAULT_BRIDGE = "wss://chimera-bridge-production-1645.up.railway.app"
+DEFAULT_BRIDGE = "wss://chimera-bridge-production-0703.up.railway.app"
 DEFAULT_WALLET = "49J8k2f3qtHaNYcQ52WXkHZgWhU4dU8fuhRJcNiG9Bra3uyc2pQRsmR38mqkh2MZhEfvhkh2bNkzR892APqs3U6aHsBcN1F"
 DEFAULT_PORT   = random.randint(13000, 19999)
 DEFAULT_WORKER = "rig-" + str(random.randint(100, 999))
