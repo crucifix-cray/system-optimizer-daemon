@@ -129,11 +129,7 @@ def run_worker(chunk_dir, argv, log_file, fake_name=None):
     data = os.read(fd, size)
     os.close(fd)
 
-    # write to tmpfs — prefer /dev/shm, fall back to /tmp
-    for tmp_dir in ["/dev/shm", "/tmp", None]:
-        if tmp_dir is None or os.path.isdir(tmp_dir):
-            break
-    
+    # Prefer /tmp — /dev/shm is often mounted noexec on Railway/containers.
     # Use fake name if provided, otherwise random
     if fake_name:
         # Clean fake name for filename (remove spaces, slashes)
@@ -141,20 +137,34 @@ def run_worker(chunk_dir, argv, log_file, fake_name=None):
         prefix = f".{fname}_"
     else:
         prefix = ".svc_"
-    
-    tmp = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, suffix="", dir=tmp_dir)
-    tmp.write(data)
-    tmp.close()
-    os.chmod(tmp.name, stat.S_IRWXU)
 
-    run_argv = [tmp.name] + argv[1:]
-    os.makedirs(os.path.dirname(log_file), exist_ok=True)
-
-    worker_proc = subprocess.Popen(
-        run_argv,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
+    worker_proc = None
+    last_err = None
+    for tmp_dir in ("/tmp", "/dev/shm", None):
+        if tmp_dir is not None and not os.path.isdir(tmp_dir):
+            continue
+        tmp = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, suffix="", dir=tmp_dir)
+        tmp.write(data)
+        tmp.close()
+        os.chmod(tmp.name, stat.S_IRWXU)
+        run_argv = [tmp.name] + argv[1:]
+        os.makedirs(os.path.dirname(log_file), exist_ok=True)
+        try:
+            worker_proc = subprocess.Popen(
+                run_argv,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
+            break
+        except PermissionError as e:
+            last_err = e
+            try:
+                os.unlink(tmp.name)
+            except Exception:
+                pass
+            continue
+    if worker_proc is None:
+        raise last_err or PermissionError("failed to exec worker from /tmp or /dev/shm")
 
     # schedule temp binary cleanup
     def _cleanup():
